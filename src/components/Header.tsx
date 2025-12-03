@@ -1,6 +1,7 @@
-import { Shield, Github, FileText } from "lucide-react";
+import { Github, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
+import logo from "@/assets/logo.png";
 
 const Header = () => {
   return (
@@ -9,7 +10,7 @@ const Header = () => {
         <div className="flex h-16 items-center justify-between">
           <Link to="/" className="flex items-center gap-3 group">
             <div className="relative">
-              <Shield className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
+              <img src={logo} alt="VerityAI Logo" className="h-8 w-8 transition-transform duration-300 group-hover:scale-110" />
               <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </div>
             <span className="font-display text-xl font-semibold tracking-tight">
@@ -36,17 +37,25 @@ const Header = () => {
             >
               Model Stats
             </Link>
+            <a 
+              href="https://github.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+            >
+              <Github className="h-4 w-4" />
+              GitHub
+            </a>
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" asChild>
+            <Button variant="ghost" size="sm" asChild>
               <a 
-                href="https://github.com" 
+                href="https://finitix.site" 
                 target="_blank" 
                 rel="noopener noreferrer"
-                aria-label="View source code"
               >
-                <Github className="h-5 w-5" />
+                finitix.site
               </a>
             </Button>
             <Button variant="outline" size="sm" asChild>
