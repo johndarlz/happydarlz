@@ -5,16 +5,9 @@ import NewsInput from "@/components/NewsInput";
 import ResultCard from "@/components/ResultCard";
 import { analyzeNews } from "@/lib/mockAnalysis";
 
-interface AnalysisResult {
-  prediction: "FAKE" | "REAL";
-  confidence: number;
-  importantWords: { word: string; weight: number; suspicious: boolean }[];
-  explanation: string;
-}
-
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [result, setResult] = useState<any>(null);
 
   const handleAnalyze = async (text: string) => {
     setIsLoading(true);
@@ -52,14 +45,13 @@ const Index = () => {
         )}
       </main>
 
-      {/* Footer */}
       <footer className="border-t border-border/50 py-8 mt-auto">
         <div className="container mx-auto px-4 text-center">
           <p className="text-sm text-muted-foreground">
-            VerityAI — AI-Powered Fake News Detection • Final Year Project
+            VerityAI — Credibility Analysis Engine
           </p>
           <p className="text-xs text-muted-foreground/60 mt-2">
-            This tool provides predictions, not final truth. Always verify from multiple sources.
+            This tool provides predictions with confidence &amp; reasoning, not final truth. Always verify from multiple sources.
           </p>
         </div>
       </footer>

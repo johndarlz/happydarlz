@@ -49,15 +49,6 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" asChild>
-              <a 
-                href="https://finitix.site" 
-                target="_blank" 
-                rel="noopener noreferrer"
-              >
-                finitix.site
-              </a>
-            </Button>
             <Button variant="outline" size="sm" asChild>
               <Link to="/docs">
                 <FileText className="h-4 w-4 mr-2" />

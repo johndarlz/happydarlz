@@ -2,13 +2,12 @@ import { useState } from "react";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { RefreshCw, Database, Brain, BarChart3, Check } from "lucide-react";
+import { RefreshCw, Database, Brain, BarChart3, Check, AlertTriangle } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
 const Admin = () => {
   const [isRetraining, setIsRetraining] = useState(false);
 
-  // Mock model statistics
   const modelStats = {
     logisticRegression: { accuracy: 0.91, precision: 0.89, recall: 0.93, f1: 0.91 },
     svm: { accuracy: 0.93, precision: 0.92, recall: 0.94, f1: 0.93 },
@@ -47,9 +46,20 @@ const Admin = () => {
           <div className="mb-8">
             <h1 className="font-display text-3xl font-bold mb-2">Model Statistics</h1>
             <p className="text-muted-foreground">
-              Performance metrics and debugging information for the ML models.
+              Performance metrics for the ML models. F1-score &gt; accuracy (fake news datasets are imbalanced).
             </p>
           </div>
+
+          {/* Important Note */}
+          <Card className="bg-primary/5 border-primary/20 mb-8">
+            <CardContent className="p-4 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+              <div className="text-sm text-muted-foreground">
+                <strong>Evaluation metric:</strong> F1-score is prioritized over accuracy because fake news datasets are imbalanced. 
+                Modern high-accuracy systems use transformers (BERT, RoBERTa) fine-tuned on labeled news datasets.
+              </div>
+            </CardContent>
+          </Card>
 
           {/* Model Performance Cards */}
           <div className="grid md:grid-cols-3 gap-6 mb-8">
@@ -59,11 +69,11 @@ const Admin = () => {
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <Brain className="w-5 h-5 text-primary" />
                     {name === "logisticRegression" && "Logistic Regression"}
-                    {name === "svm" && "Support Vector Machine"}
+                    {name === "svm" && "SVM"}
                     {name === "randomForest" && "Random Forest"}
                     {name === "randomForest" && (
                       <span className="ml-auto text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Best
+                        <Check className="w-3 h-3" /> Best F1
                       </span>
                     )}
                   </CardTitle>
@@ -99,7 +109,7 @@ const Admin = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
-                Confusion Matrix (Best Model)
+                Confusion Matrix (Best Model — Random Forest)
               </CardTitle>
               <CardDescription>
                 Performance breakdown on test dataset (10,000 samples)
@@ -127,12 +137,40 @@ const Admin = () => {
             </CardContent>
           </Card>
 
+          {/* Models That Work */}
+          <Card className="bg-card border-border/50 shadow-card mb-8">
+            <CardHeader>
+              <CardTitle>Production-Ready Models</CardTitle>
+              <CardDescription>Models that actually achieve high accuracy in fake news detection</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm">Classical ML (Current)</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-success" /> Logistic Regression + TF-IDF</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-success" /> Support Vector Machine</li>
+                    <li className="flex items-center gap-2"><Check className="w-4 h-4 text-success" /> Random Forest Ensemble</li>
+                  </ul>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-sm">Transformer-Based (Advanced)</h4>
+                  <ul className="space-y-2 text-sm text-muted-foreground">
+                    <li className="flex items-center gap-2"><Brain className="w-4 h-4 text-primary" /> bert-base-uncased (fine-tuned)</li>
+                    <li className="flex items-center gap-2"><Brain className="w-4 h-4 text-primary" /> RoBERTa (better language sensitivity)</li>
+                    <li className="flex items-center gap-2"><Brain className="w-4 h-4 text-primary" /> DistilBERT (faster inference)</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Dataset & Retraining */}
           <Card className="bg-card border-border/50 shadow-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Database className="w-5 h-5 text-primary" />
-                Dataset Information
+                Dataset & Retraining
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -151,8 +189,8 @@ const Admin = () => {
                     <span className="font-mono">5,000</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Last Trained</span>
-                    <span className="font-mono text-sm">2024-01-15</span>
+                    <span className="text-muted-foreground">Selection Metric</span>
+                    <span className="font-mono text-primary">F1-score</span>
                   </div>
                 </div>
                 <div className="flex flex-col justify-center items-center gap-4">
