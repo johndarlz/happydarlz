@@ -1,48 +1,51 @@
 import Header from "@/components/Header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  Database, Cpu, Zap, FileText, 
-  ArrowRight, CheckCircle2, Code2, Server
+  Search, Brain, ShieldCheck, AlertTriangle, CheckCircle2, 
+  Code2, Server, XCircle, Eye, Scale
 } from "lucide-react";
 
 const About = () => {
-  const algorithmSteps = [
+  const coreSignals = [
     {
-      step: 1,
-      title: "Data Collection",
-      description: "Load Kaggle Fake News Dataset containing labeled real and fake news articles.",
-      icon: Database
+      title: "Source Credibility",
+      description: "Known outlet vs unknown blog. Past reliability record. Attribution to named sources.",
+      icon: ShieldCheck,
     },
     {
-      step: 2,
-      title: "Text Preprocessing",
-      description: "Clean text by removing duplicates, punctuation, stopwords. Tokenize and lemmatize words.",
-      icon: FileText
+      title: "Language Patterns",
+      description: "Emotional exaggeration, clickbait phrasing, absolute claims ('100% proof', 'they don't want you to know').",
+      icon: Eye,
     },
     {
-      step: 3,
-      title: "Feature Extraction",
-      description: "Convert text to numerical vectors using TF-IDF (Term Frequency-Inverse Document Frequency).",
-      icon: Cpu
+      title: "Factual Structure",
+      description: "Verifiable claims vs vague assertions. Named entities, dates, places, specific data points.",
+      icon: Search,
     },
     {
-      step: 4,
-      title: "Model Training",
-      description: "Train 3 models: Logistic Regression, SVM, and Random Forest on the processed data.",
-      icon: Zap
+      title: "Evidence Quality",
+      description: "Primary sources linked? Quotes traceable? Peer-reviewed research cited?",
+      icon: Scale,
     },
     {
-      step: 5,
-      title: "Model Selection",
-      description: "Evaluate all models using accuracy, precision, recall, and F1-score. Select best model.",
-      icon: CheckCircle2
+      title: "Cross-Consistency",
+      description: "Do multiple reliable sources report the same thing? Are facts internally consistent?",
+      icon: Brain,
     },
-    {
-      step: 6,
-      title: "Prediction",
-      description: "New input text is cleaned, vectorized, and classified as FAKE or REAL with confidence score.",
-      icon: ArrowRight
-    }
+  ];
+
+  const whyMostFail = [
+    { text: "They classify opinion as fake", icon: XCircle },
+    { text: "They confuse new info with false info", icon: XCircle },
+    { text: "They don't verify sources", icon: XCircle },
+    { text: "They give binary answers instead of confidence + reasoning", icon: XCircle },
+  ];
+
+  const goodSystem = [
+    "Explain WHY it made the decision",
+    "Separate claims from facts",
+    "Flag uncertainty",
+    "Output confidence, reasons, and limits",
   ];
 
   return (
@@ -52,138 +55,144 @@ const About = () => {
       <main className="pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-4xl">
           <div className="mb-12 text-center">
-            <h1 className="font-display text-4xl font-bold mb-4">How It Works</h1>
+            <h1 className="font-display text-4xl font-bold mb-4">How It Actually Works</h1>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Understanding the machine learning pipeline behind fake news detection.
+              A fake-news model does NOT "know the truth." It estimates likelihood of unreliability based on signals.
             </p>
           </div>
 
-          {/* Algorithm Steps */}
-          <div className="space-y-4 mb-16">
-            {algorithmSteps.map((item, index) => (
-              <Card key={item.step} className="bg-card border-border/50 shadow-card animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
-                <CardContent className="flex items-start gap-4 p-6">
-                  <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <item.icon className="w-6 h-6 text-primary" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-xs font-mono bg-secondary px-2 py-0.5 rounded">
-                        Step {item.step}
-                      </span>
-                      <h3 className="font-display font-semibold text-lg">{item.title}</h3>
+          {/* Core Signals */}
+          <div className="mb-12">
+            <h2 className="font-display text-2xl font-bold mb-6">Core Signals Used</h2>
+            <div className="space-y-4">
+              {coreSignals.map((signal, index) => (
+                <Card key={index} className="bg-card border-border/50 shadow-card animate-fade-in" style={{ animationDelay: `${index * 0.08}s` }}>
+                  <CardContent className="flex items-start gap-4 p-6">
+                    <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                      <signal.icon className="w-6 h-6 text-primary" />
                     </div>
-                    <p className="text-muted-foreground">{item.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    <div>
+                      <h3 className="font-display font-semibold text-lg mb-1">{signal.title}</h3>
+                      <p className="text-muted-foreground text-sm">{signal.description}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground mt-4 text-center">
+              ➡️ The model outputs a probability / classification, <strong>not truth</strong>.
+            </p>
           </div>
 
-          {/* Data Flow */}
+          {/* Architecture */}
           <Card className="bg-card border-border/50 shadow-card mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Code2 className="w-5 h-5 text-primary" />
-                Data Flow
+                Analysis Pipeline
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="bg-secondary/30 rounded-xl p-6 font-mono text-sm overflow-x-auto">
                 <pre className="text-muted-foreground">
-{`User Input (Raw Text)
-    │
-    ▼
-┌─────────────────────────────┐
-│  Text Preprocessing         │
-│  • Lowercase conversion     │
-│  • Remove punctuation       │
-│  • Remove stopwords         │
-│  • Tokenization             │
-│  • Lemmatization            │
-└─────────────────────────────┘
-    │
-    ▼
-┌─────────────────────────────┐
-│  TF-IDF Vectorization       │
-│  • Transform text → numbers │
-│  • Same vectorizer as train │
-└─────────────────────────────┘
-    │
-    ▼
-┌─────────────────────────────┐
-│  ML Model Prediction        │
-│  • Load saved model         │
-│  • Predict class            │
-│  • Get probability score    │
-└─────────────────────────────┘
-    │
-    ▼
-┌─────────────────────────────┐
-│  Result Generation          │
-│  • FAKE or REAL label       │
-│  • Confidence percentage    │
-│  • Key word extraction      │
-│  • Explanation text         │
-└─────────────────────────────┘`}
+{`Input Article/Text
+      ↓
+Text Cleaning (remove noise)
+      ↓
+Feature Extraction
+  - Linguistic features
+  - Named entities
+  - Claim density
+  - Source attribution
+      ↓
+Multi-Signal Analysis
+  - Emotional manipulation score
+  - Clickbait / urgency score
+  - Absolute claims score
+  - Source credibility score
+  - Balance / nuance score
+      ↓
+Claim-Level Extraction
+  - Classify each claim
+  - Verifiable vs Vague vs Opinion vs Absolute
+      ↓
+Output:
+  - Credibility Score (0–100)
+  - Classification: Reliable / Questionable / Likely Fake
+  - Justification with specific reasons
+  - What additional verification is needed`}
                 </pre>
               </div>
             </CardContent>
           </Card>
 
-          {/* Architecture */}
-          <Card className="bg-card border-border/50 shadow-card">
+          {/* Why Most Fail */}
+          <Card className="bg-card border-border/50 shadow-card mb-12">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Server className="w-5 h-5 text-primary" />
-                System Architecture
+                <AlertTriangle className="w-5 h-5 text-destructive" />
+                Why Most "Fake News Detectors" Fail
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-primary">Frontend (React)</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      User interface for news input
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      Result visualization
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      Admin dashboard
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      API communication
-                    </li>
-                  </ul>
-                </div>
-                <div className="space-y-4">
-                  <h4 className="font-semibold text-primary">Backend (Python/Flask)</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      REST API endpoints
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      ML model loading
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      Text preprocessing
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle2 className="w-4 h-4 text-success" />
-                      Model retraining
-                    </li>
-                  </ul>
+              <div className="space-y-3 mb-6">
+                {whyMostFail.map((item, index) => (
+                  <div key={index} className="flex items-center gap-3 text-muted-foreground">
+                    <item.icon className="w-5 h-5 text-destructive flex-shrink-0" />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="border-t border-border pt-6">
+                <h4 className="font-semibold mb-3 text-success">A good system must:</h4>
+                <div className="space-y-2">
+                  {goodSystem.map((item, index) => (
+                    <div key={index} className="flex items-center gap-3 text-muted-foreground">
+                      <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
+                      <span>{item}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Example */}
+          <Card className="bg-card border-border/50 shadow-card mb-12">
+            <CardHeader>
+              <CardTitle>Example: Correct Behavior</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="bg-secondary/30 rounded-lg p-4">
+                <p className="text-sm font-medium mb-1">Input:</p>
+                <p className="text-muted-foreground italic">"Scientists confirm drinking lemon water cures cancer."</p>
+              </div>
+              <div className="bg-secondary/30 rounded-lg p-4 space-y-2">
+                <p className="text-sm font-medium">Model reasoning (correct behavior):</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  <li>• Claim: "lemon water cures cancer" → medical falsehood</li>
+                  <li>• No peer-reviewed sources cited</li>
+                  <li>• Uses absolute language ("cures")</li>
+                  <li>• Contradicts established medical evidence</li>
+                </ul>
+              </div>
+              <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
+                <p className="text-sm font-medium mb-2">Output:</p>
+                <p className="text-sm text-muted-foreground">Credibility score: <strong className="text-destructive">8/100</strong></p>
+                <p className="text-sm text-muted-foreground">Classification: <strong className="text-destructive">Likely Fake</strong></p>
+                <p className="text-sm text-muted-foreground mt-2">Reason: Extraordinary medical claim without evidence, contradicts established oncology research, no credible sources or trials cited.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Golden Rule */}
+          <Card className="bg-primary/5 border-primary/20 shadow-card">
+            <CardContent className="p-8 text-center">
+              <h3 className="font-display text-xl font-bold mb-3">Golden Rule: Accuracy First</h3>
+              <p className="text-muted-foreground max-w-lg mx-auto">
+                No model should say "true" or "false" alone. It should say: <strong>confidence</strong>, <strong>reasons</strong>, and <strong>limits</strong>. Anything else is pretending.
+              </p>
             </CardContent>
           </Card>
         </div>
