@@ -1,289 +1,300 @@
-// Claim-level credibility analysis engine
+// ═══════════════════════════════════════════════════════════════════
+// Claim-Level Credibility Analysis Engine v3.0
+// Multi-dimensional scoring with 200+ signal patterns
 // In production, this would use a fine-tuned BERT/RoBERTa model
+// ═══════════════════════════════════════════════════════════════════
 
-interface Claim {
-  text: string;
-  type: "verifiable" | "vague" | "opinion" | "absolute";
-  credible: boolean;
-  reason: string;
-}
+import {
+  emotionalPatterns,
+  clickbaitPatterns,
+  absolutePatterns,
+  medicalMisinfo,
+  propagandaPatterns,
+  credibilityPatterns,
+  balancePatterns,
+  satirePatterns,
+  type PatternEntry,
+} from "./patterns";
 
-interface AnalysisResult {
+import { extractClaims, type Claim } from "./claimExtractor";
+
+export type { Claim };
+
+export interface AnalysisResult {
   prediction: "Likely Reliable" | "Questionable" | "Likely Fake";
   confidence: number;
   importantWords: { word: string; weight: number; suspicious: boolean }[];
   explanation: string;
   claims: Claim[];
   needsVerification: string[];
+  dimensions: {
+    emotionalScore: number;
+    clickbaitScore: number;
+    conspiracyScore: number;
+    medicalMisinfoScore: number;
+    propagandaScore: number;
+    credibilityScore: number;
+    balanceScore: number;
+    structuralScore: number;
+  };
 }
 
-// ── Signal detectors ──────────────────────────────────────────────
+// ── Pattern scanner ───────────────────────────────────────────────
 
-// Emotional / manipulative language
-const emotionalPatterns: { pattern: string; weight: number }[] = [
-  { pattern: "shocking", weight: 0.8 },
-  { pattern: "unbelievable", weight: 0.85 },
-  { pattern: "you won't believe", weight: 0.95 },
-  { pattern: "mind-blowing", weight: 0.8 },
-  { pattern: "terrifying", weight: 0.65 },
-  { pattern: "outrage", weight: 0.6 },
-  { pattern: "destroy", weight: 0.5 },
-  { pattern: "catastrophe", weight: 0.5 },
-  { pattern: "jaw-dropping", weight: 0.75 },
-];
-
-// Clickbait / urgency
-const clickbaitPatterns: { pattern: string; weight: number }[] = [
-  { pattern: "share before deleted", weight: 0.95 },
-  { pattern: "going viral", weight: 0.6 },
-  { pattern: "act now", weight: 0.7 },
-  { pattern: "limited time", weight: 0.6 },
-  { pattern: "urgent", weight: 0.5 },
-  { pattern: "breaking", weight: 0.4 },
-  { pattern: "exclusive", weight: 0.4 },
-];
-
-// Absolute / conspiracy claims
-const absolutePatterns: { pattern: string; weight: number }[] = [
-  { pattern: "100% proof", weight: 0.95 },
-  { pattern: "they don't want you to know", weight: 0.98 },
-  { pattern: "conspiracy", weight: 0.95 },
-  { pattern: "cover-up", weight: 0.85 },
-  { pattern: "deep state", weight: 0.95 },
-  { pattern: "new world order", weight: 0.95 },
-  { pattern: "mainstream media", weight: 0.7 },
-  { pattern: "wake up", weight: 0.6 },
-  { pattern: "open your eyes", weight: 0.8 },
-  { pattern: "sheeple", weight: 0.95 },
-  { pattern: "miracle cure", weight: 0.95 },
-  { pattern: "doctors hate", weight: 0.95 },
-  { pattern: "big pharma", weight: 0.85 },
-  { pattern: "chemtrails", weight: 0.98 },
-  { pattern: "what they're hiding", weight: 0.9 },
-  { pattern: "the truth about", weight: 0.7 },
-  { pattern: "exposed", weight: 0.6 },
-  { pattern: "banned", weight: 0.65 },
-  { pattern: "cures", weight: 0.7 },
-  { pattern: "secret", weight: 0.5 },
-];
-
-// Source credibility signals
-const credibilityPatterns: { pattern: string; weight: number }[] = [
-  { pattern: "according to", weight: 0.8 },
-  { pattern: "sources say", weight: 0.5 },
-  { pattern: "officials said", weight: 0.75 },
-  { pattern: "spokesperson", weight: 0.7 },
-  { pattern: "statement released", weight: 0.7 },
-  { pattern: "study shows", weight: 0.85 },
-  { pattern: "study published", weight: 0.9 },
-  { pattern: "research", weight: 0.5 },
-  { pattern: "peer-reviewed", weight: 0.95 },
-  { pattern: "published in", weight: 0.8 },
-  { pattern: "journal", weight: 0.75 },
-  { pattern: "university", weight: 0.7 },
-  { pattern: "scientists", weight: 0.65 },
-  { pattern: "researchers", weight: 0.7 },
-  { pattern: "experts", weight: 0.55 },
-  { pattern: "evidence", weight: 0.55 },
-  { pattern: "findings", weight: 0.6 },
-  { pattern: "data", weight: 0.4 },
-  { pattern: "statistics", weight: 0.5 },
-  { pattern: "report", weight: 0.45 },
-  { pattern: "confirmed", weight: 0.5 },
-  { pattern: "announced", weight: 0.4 },
-];
-
-// Balanced reporting signals
-const balancePatterns: { pattern: string; weight: number }[] = [
-  { pattern: "however", weight: 0.5 },
-  { pattern: "on the other hand", weight: 0.6 },
-  { pattern: "critics argue", weight: 0.65 },
-  { pattern: "some experts disagree", weight: 0.7 },
-  { pattern: "while others", weight: 0.55 },
-  { pattern: "it remains unclear", weight: 0.5 },
-  { pattern: "could not be independently verified", weight: 0.6 },
-];
-
-// ── Claim extraction ──────────────────────────────────────────────
-
-function extractClaims(text: string): Claim[] {
-  const sentences = text.split(/[.!?]+/).map(s => s.trim()).filter(s => s.length > 10);
-  const claims: Claim[] = [];
-
-  for (const sentence of sentences.slice(0, 6)) {
-    const lower = sentence.toLowerCase();
-
-    // Check for absolute claims
-    const hasAbsolute = absolutePatterns.some(p => lower.includes(p.pattern));
-    if (hasAbsolute) {
-      claims.push({
-        text: sentence,
-        type: "absolute",
-        credible: false,
-        reason: "Contains absolute or conspiracy language without evidence"
-      });
-      continue;
+function scanPatterns(
+  text: string,
+  patterns: PatternEntry[],
+  suspicious: boolean,
+  foundWords: { word: string; weight: number; suspicious: boolean }[]
+): number {
+  let score = 0;
+  const lower = text.toLowerCase();
+  for (const { pattern, weight } of patterns) {
+    if (lower.includes(pattern)) {
+      score += weight;
+      foundWords.push({ word: pattern, weight, suspicious });
     }
+  }
+  return score;
+}
 
-    // Check for vague assertions
-    const hasCredibleSource = credibilityPatterns.some(p => lower.includes(p.pattern));
-    const hasSpecificData = /\b\d+%|\b\d{4}\b|\b\d+\s*(million|billion|thousand)/.test(sentence);
-    const hasNamedEntity = /[A-Z][a-z]+\s+[A-Z][a-z]+/.test(sentence);
+// ── Structural analysis ───────────────────────────────────────────
 
-    if (!hasCredibleSource && !hasSpecificData && !hasNamedEntity) {
-      // Check if it's an opinion
-      const opinionWords = ["i think", "i believe", "in my opinion", "clearly", "obviously", "everyone knows"];
-      const isOpinion = opinionWords.some(w => lower.includes(w));
-      
-      if (isOpinion) {
-        claims.push({
-          text: sentence,
-          type: "opinion",
-          credible: false,
-          reason: "Opinion stated as fact, not a verifiable claim"
-        });
-      } else {
-        claims.push({
-          text: sentence,
-          type: "vague",
-          credible: false,
-          reason: "Vague assertion without named sources, data, or evidence"
-        });
-      }
-      continue;
-    }
+function analyzeStructure(text: string): {
+  score: number;
+  signals: { word: string; weight: number; suspicious: boolean }[];
+  details: {
+    capsRatio: number;
+    punctuationAbuse: number;
+    hasQuotes: boolean;
+    hasSpecificData: boolean;
+    hasDates: boolean;
+    hasURLs: boolean;
+    avgSentenceLength: number;
+    sentenceCount: number;
+    wordCount: number;
+    paragraphCount: number;
+    readabilityScore: number;
+  };
+} {
+  const signals: { word: string; weight: number; suspicious: boolean }[] = [];
+  let positiveScore = 0;
+  let negativeScore = 0;
 
-    claims.push({
-      text: sentence,
-      type: "verifiable",
-      credible: true,
-      reason: hasCredibleSource
-        ? "Attributes information to a named source"
-        : hasSpecificData
-        ? "Contains specific, verifiable data points"
-        : "References identifiable entities"
-    });
+  const wordCount = text.split(/\s+/).filter(Boolean).length;
+  const sentences = text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
+  const sentenceCount = sentences.length;
+  const avgSentenceLength = wordCount / Math.max(sentenceCount, 1);
+  const paragraphs = text.split(/\n\s*\n/).filter((p) => p.trim().length > 0);
+
+  // CAPS abuse
+  const capsWords = text.match(/\b[A-Z]{4,}\b/g) || [];
+  const capsRatio = capsWords.length / Math.max(wordCount, 1);
+  if (capsRatio > 0.03) {
+    const w = Math.min(capsRatio * 10, 1);
+    negativeScore += w;
+    signals.push({ word: "EXCESSIVE CAPS", weight: w, suspicious: true });
   }
 
-  return claims;
+  // Punctuation abuse
+  const excessivePunct = text.match(/[!?]{2,}/g) || [];
+  const punctAbuse = excessivePunct.length;
+  if (punctAbuse > 0) {
+    const w = Math.min(punctAbuse * 0.25, 1);
+    negativeScore += w;
+    signals.push({ word: "excessive punctuation (!!/?!)", weight: w, suspicious: true });
+  }
+
+  // All-caps sentences
+  const allCapsSentences = sentences.filter(
+    (s) => s.trim().length > 15 && s.trim() === s.trim().toUpperCase()
+  );
+  if (allCapsSentences.length > 0) {
+    const w = Math.min(allCapsSentences.length * 0.4, 1);
+    negativeScore += w;
+    signals.push({ word: "all-caps sentences", weight: w, suspicious: true });
+  }
+
+  // Quoted sources (positive)
+  const hasQuotes = /[""\u201C].*?[""\u201D]/.test(text) || /"[^"]{5,}"/.test(text);
+  if (hasQuotes) {
+    positiveScore += 0.6;
+    signals.push({ word: "quoted sources", weight: 0.6, suspicious: false });
+  }
+
+  // Specific numbers / statistics
+  const numberMatches = text.match(/\b\d+(\.\d+)?%/g) || [];
+  const hasSpecificData = numberMatches.length > 0;
+  if (hasSpecificData) {
+    const w = Math.min(0.3 + numberMatches.length * 0.15, 0.8);
+    positiveScore += w;
+    signals.push({ word: `specific statistics (${numberMatches.length} found)`, weight: w, suspicious: false });
+  }
+
+  // Dates
+  const datePattern = /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{1,2},?\s*\d{0,4}/gi;
+  const datePattern2 = /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/g;
+  const datePattern3 = /\b(20[0-2]\d|19\d\d)\b/g;
+  const dates1 = text.match(datePattern) || [];
+  const dates2 = text.match(datePattern2) || [];
+  const dates3 = text.match(datePattern3) || [];
+  const hasDates = dates1.length + dates2.length > 0;
+  const totalDates = dates1.length + dates2.length + dates3.length;
+  if (totalDates > 0) {
+    const w = Math.min(totalDates * 0.15, 0.6);
+    positiveScore += w;
+    signals.push({ word: `date references (${totalDates})`, weight: w, suspicious: false });
+  }
+
+  // URLs / links
+  const hasURLs = /https?:\/\/\S+/.test(text) || /www\.\S+/.test(text);
+  if (hasURLs) {
+    positiveScore += 0.4;
+    signals.push({ word: "external links/URLs", weight: 0.4, suspicious: false });
+  }
+
+  // Sentence quality — professional writing has moderate sentence lengths
+  if (avgSentenceLength >= 12 && avgSentenceLength <= 30 && sentenceCount >= 3) {
+    positiveScore += 0.3;
+  } else if (avgSentenceLength < 8 && sentenceCount < 3) {
+    negativeScore += 0.2;
+    signals.push({ word: "very short/fragmented text", weight: 0.2, suspicious: true });
+  }
+
+  // Multi-paragraph (more structured)
+  if (paragraphs.length >= 3) {
+    positiveScore += 0.2;
+    signals.push({ word: "multi-paragraph structure", weight: 0.2, suspicious: false });
+  }
+
+  // Readability score (Flesch-like simplified)
+  const syllableEstimate = text.split(/\s+/).reduce((acc, word) => {
+    const vowelGroups = word.toLowerCase().match(/[aeiouy]+/g) || [];
+    return acc + Math.max(vowelGroups.length, 1);
+  }, 0);
+  const readabilityScore = 206.835 - 1.015 * avgSentenceLength - 84.6 * (syllableEstimate / Math.max(wordCount, 1));
+
+  const score = positiveScore - negativeScore;
+
+  return {
+    score,
+    signals,
+    details: {
+      capsRatio,
+      punctuationAbuse: punctAbuse,
+      hasQuotes,
+      hasSpecificData,
+      hasDates,
+      hasURLs,
+      avgSentenceLength,
+      sentenceCount,
+      wordCount,
+      paragraphCount: paragraphs.length,
+      readabilityScore,
+    },
+  };
 }
 
 // ── Main analysis ─────────────────────────────────────────────────
 
 export const analyzeNews = async (text: string): Promise<AnalysisResult> => {
-  await new Promise(resolve => setTimeout(resolve, 1800));
+  await new Promise((resolve) => setTimeout(resolve, 1500));
 
-  const lowerText = text.toLowerCase();
-  const wordCount = text.split(/\s+/).filter(Boolean).length;
   const foundWords: { word: string; weight: number; suspicious: boolean }[] = [];
 
-  // Score each signal category
-  let emotionalScore = 0;
-  for (const { pattern, weight } of emotionalPatterns) {
-    if (lowerText.includes(pattern)) {
-      emotionalScore += weight;
-      foundWords.push({ word: pattern, weight, suspicious: true });
-    }
-  }
+  // 1. Scan all pattern categories
+  const emotionalScore = scanPatterns(text, emotionalPatterns, true, foundWords);
+  const clickbaitScore = scanPatterns(text, clickbaitPatterns, true, foundWords);
+  const conspiracyScore = scanPatterns(text, absolutePatterns, true, foundWords);
+  const medicalMisinfoScore = scanPatterns(text, medicalMisinfo, true, foundWords);
+  const propagandaScore = scanPatterns(text, propagandaPatterns, true, foundWords);
+  const credibilityScore = scanPatterns(text, credibilityPatterns, false, foundWords);
+  const balanceScore = scanPatterns(text, balancePatterns, false, foundWords);
 
-  let clickbaitScore = 0;
-  for (const { pattern, weight } of clickbaitPatterns) {
-    if (lowerText.includes(pattern)) {
-      clickbaitScore += weight;
-      foundWords.push({ word: pattern, weight, suspicious: true });
-    }
-  }
+  // Check for satire
+  const satireScore = scanPatterns(text, satirePatterns, false, []);
 
-  let absoluteScore = 0;
-  for (const { pattern, weight } of absolutePatterns) {
-    if (lowerText.includes(pattern)) {
-      absoluteScore += weight;
-      foundWords.push({ word: pattern, weight, suspicious: true });
-    }
-  }
+  // 2. Structural analysis
+  const structure = analyzeStructure(text);
+  foundWords.push(...structure.signals);
 
-  let credibilityScore = 0;
-  for (const { pattern, weight } of credibilityPatterns) {
-    if (lowerText.includes(pattern)) {
-      credibilityScore += weight;
-      foundWords.push({ word: pattern, weight, suspicious: false });
-    }
-  }
-
-  let balanceScore = 0;
-  for (const { pattern, weight } of balancePatterns) {
-    if (lowerText.includes(pattern)) {
-      balanceScore += weight;
-      foundWords.push({ word: pattern, weight, suspicious: false });
-    }
-  }
-
-  // Structural signals
-  const capsWords = text.match(/\b[A-Z]{4,}\b/g) || [];
-  const capsRatio = capsWords.length / Math.max(wordCount, 1);
-  if (capsRatio > 0.05) {
-    const w = Math.min(capsRatio * 8, 1);
-    emotionalScore += w;
-    foundWords.push({ word: "EXCESSIVE CAPS", weight: w, suspicious: true });
-  }
-
-  const excessivePunct = text.match(/[!?]{2,}/g) || [];
-  if (excessivePunct.length > 0) {
-    const w = Math.min(excessivePunct.length * 0.3, 1);
-    clickbaitScore += w;
-    foundWords.push({ word: "excessive punctuation", weight: w, suspicious: true });
-  }
-
-  // Quotes = attribution
-  const hasQuotes = /[""\u201C].*?[""\u201D]/.test(text) || /".*?"/.test(text);
-  if (hasQuotes) {
-    credibilityScore += 0.5;
-    foundWords.push({ word: "quoted sources", weight: 0.5, suspicious: false });
-  }
-
-  // Specific numbers / dates
-  const hasSpecificData = /\b\d+%/.test(text) || /\b\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}\b/.test(text);
-  if (hasSpecificData) {
-    credibilityScore += 0.3;
-    foundWords.push({ word: "specific data/dates", weight: 0.4, suspicious: false });
-  }
-
-  // Sentence quality
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
-  const avgSentenceLen = wordCount / Math.max(sentences.length, 1);
-  if (avgSentenceLen > 15 && sentences.length > 2) {
-    credibilityScore += 0.3;
-  }
-
-  // Extract claims
+  // 3. Extract & analyze claims
   const claims = extractClaims(text);
-  const credibleClaims = claims.filter(c => c.credible).length;
-  const totalClaims = claims.length || 1;
+  const credibleClaims = claims.filter((c) => c.credible).length;
+  const totalClaims = Math.max(claims.length, 1);
   const claimCredibilityRatio = credibleClaims / totalClaims;
 
-  // Combine all signals into final score (0-100)
-  const suspiciousTotal = emotionalScore + clickbaitScore + absoluteScore;
-  const credibleTotal = credibilityScore + balanceScore;
-  const totalSignals = suspiciousTotal + credibleTotal;
+  // Claim severity — average severity of non-credible claims
+  const nonCredibleClaims = claims.filter((c) => !c.credible);
+  const avgClaimSeverity =
+    nonCredibleClaims.length > 0
+      ? nonCredibleClaims.reduce((sum, c) => sum + c.severity, 0) / nonCredibleClaims.length
+      : 0;
 
+  // Medical misinfo in claims is critical
+  const hasMedicalMisinfoClaims = claims.some((c) => c.type === "medical_misinfo");
+
+  // 4. Weighted composite scoring
+  // Negative signals (weighted by danger)
+  const suspiciousWeighted =
+    emotionalScore * 1.0 +
+    clickbaitScore * 1.2 +
+    conspiracyScore * 2.0 +
+    medicalMisinfoScore * 2.5 +
+    propagandaScore * 1.3;
+
+  // Positive signals
+  const credibleWeighted =
+    credibilityScore * 1.5 +
+    balanceScore * 1.2 +
+    structure.score * 1.0;
+
+  // 5. Calculate credibility percentage
   let credibilityPercent: number;
-  if (totalSignals === 0) {
-    // No strong signals — rely on claim analysis
-    credibilityPercent = 40 + claimCredibilityRatio * 30; // 40-70
+  const totalSignalWeight = suspiciousWeighted + Math.max(credibleWeighted, 0);
+
+  if (satireScore > 0.5) {
+    // Satire detected — not fake news, just humor
+    credibilityPercent = 45;
+  } else if (hasMedicalMisinfoClaims && medicalMisinfoScore > 1) {
+    // Strong medical misinformation — very low score
+    credibilityPercent = Math.max(2, 15 - medicalMisinfoScore * 3);
+  } else if (conspiracyScore > 2) {
+    // Heavy conspiracy language
+    credibilityPercent = Math.max(2, 20 - conspiracyScore * 2);
+  } else if (totalSignalWeight === 0) {
+    // No signals at all — use claim analysis + structure
+    credibilityPercent = 35 + claimCredibilityRatio * 35 + Math.max(structure.score * 10, 0);
   } else {
-    const baseScore = credibleTotal / totalSignals; // 0-1, higher = more credible
-    credibilityPercent = baseScore * 70 + claimCredibilityRatio * 30; // weighted
+    // Standard weighted calculation
+    const baseRatio = Math.max(credibleWeighted, 0) / Math.max(totalSignalWeight, 0.01);
+    
+    // Base from signal ratio (0-60)
+    const signalComponent = baseRatio * 60;
+    
+    // Claim quality component (0-25)
+    const claimComponent = claimCredibilityRatio * 25;
+    
+    // Structure component (0-15)
+    const structureComponent = Math.max(Math.min(structure.score * 10, 15), -10);
+    
+    // Penalty for high severity claims
+    const severityPenalty = avgClaimSeverity * 15;
+    
+    credibilityPercent = signalComponent + claimComponent + structureComponent - severityPenalty;
   }
 
-  // Short text = lower confidence
-  const isShort = wordCount < 20;
-  if (isShort) {
+  // Short text has lower confidence ceiling
+  if (structure.details.wordCount < 15) {
+    credibilityPercent = Math.min(credibilityPercent, 45);
+  } else if (structure.details.wordCount < 30) {
     credibilityPercent = Math.min(credibilityPercent, 55);
   }
 
+  // Clamp
   credibilityPercent = Math.round(Math.max(2, Math.min(98, credibilityPercent)));
 
-  // 3-tier classification
+  // 6. Three-tier classification
   let prediction: "Likely Reliable" | "Questionable" | "Likely Fake";
   if (credibilityPercent >= 65) {
     prediction = "Likely Reliable";
@@ -293,77 +304,129 @@ export const analyzeNews = async (text: string): Promise<AnalysisResult> => {
     prediction = "Likely Fake";
   }
 
-  // What needs verification
+  // 7. What needs verification
   const needsVerification: string[] = [];
-  if (!hasQuotes) needsVerification.push("No direct quotes or attributed sources found");
-  if (!hasSpecificData) needsVerification.push("No specific data points or dates to verify");
-  if (claims.filter(c => c.type === "vague").length > 0) needsVerification.push("Contains vague assertions — look for primary sources");
-  if (absoluteScore > 0) needsVerification.push("Contains extraordinary claims — require extraordinary evidence");
-  if (emotionalScore > 1) needsVerification.push("High emotional language — check if facts hold without the emotion");
-  if (needsVerification.length === 0) needsVerification.push("Cross-reference key facts with multiple reliable sources");
+  if (!structure.details.hasQuotes) needsVerification.push("No direct quotes or attributed sources found — verify original statements");
+  if (!structure.details.hasSpecificData) needsVerification.push("No specific statistics or data points — look for quantifiable evidence");
+  if (!structure.details.hasDates) needsVerification.push("No specific dates — verify temporal claims with dated sources");
+  if (!structure.details.hasURLs) needsVerification.push("No external links — check for primary source references");
+  if (claims.some((c) => c.type === "vague")) needsVerification.push("Contains vague assertions — search for primary sources with named authors");
+  if (conspiracyScore > 0) needsVerification.push("Contains extraordinary claims — extraordinary claims require extraordinary evidence");
+  if (emotionalScore > 0.8) needsVerification.push("High emotional language detected — re-evaluate claims with emotion removed");
+  if (hasMedicalMisinfoClaims) needsVerification.push("Contains medical claims — verify with peer-reviewed medical literature (PubMed, Cochrane)");
+  if (propagandaScore > 0.5) needsVerification.push("Contains politically loaded language — seek coverage from multiple political perspectives");
+  if (needsVerification.length === 0) needsVerification.push("Cross-reference key facts with at least 3 independent reliable sources");
 
-  foundWords.sort((a, b) => b.weight - a.weight);
+  // 8. Sort and deduplicate found words
+  const seen = new Set<string>();
+  const uniqueWords = foundWords.filter((w) => {
+    if (seen.has(w.word)) return false;
+    seen.add(w.word);
+    return true;
+  });
+  uniqueWords.sort((a, b) => b.weight - a.weight);
 
-  if (foundWords.length === 0) {
-    foundWords.push(
+  if (uniqueWords.length === 0) {
+    uniqueWords.push(
       { word: "neutral content", weight: 0.5, suspicious: false },
       { word: "standard language", weight: 0.45, suspicious: false }
     );
   }
 
-  const explanation = generateExplanation(prediction, credibilityPercent, foundWords, claims, needsVerification);
+  // 9. Generate explanation
+  const explanation = generateExplanation(prediction, credibilityPercent, uniqueWords, claims, {
+    emotionalScore,
+    clickbaitScore,
+    conspiracyScore,
+    medicalMisinfoScore,
+    propagandaScore,
+  });
 
   return {
     prediction,
     confidence: credibilityPercent,
-    importantWords: foundWords.slice(0, 10),
+    importantWords: uniqueWords.slice(0, 12),
     explanation,
     claims,
-    needsVerification
+    needsVerification,
+    dimensions: {
+      emotionalScore: Math.min(emotionalScore, 10),
+      clickbaitScore: Math.min(clickbaitScore, 10),
+      conspiracyScore: Math.min(conspiracyScore, 10),
+      medicalMisinfoScore: Math.min(medicalMisinfoScore, 10),
+      propagandaScore: Math.min(propagandaScore, 10),
+      credibilityScore: Math.min(credibilityScore, 10),
+      balanceScore: Math.min(balanceScore, 10),
+      structuralScore: Math.max(Math.min(structure.score, 5), -5),
+    },
   };
 };
+
+// ── Explanation generator ─────────────────────────────────────────
 
 function generateExplanation(
   prediction: string,
   confidence: number,
   words: { word: string; weight: number; suspicious: boolean }[],
   claims: Claim[],
-  needsVerification: string[]
+  scores: {
+    emotionalScore: number;
+    clickbaitScore: number;
+    conspiracyScore: number;
+    medicalMisinfoScore: number;
+    propagandaScore: number;
+  }
 ): string {
-  const suspicious = words.filter(w => w.suspicious).map(w => w.word);
-  const credible = words.filter(w => !w.suspicious).map(w => w.word);
-  const vagueClaims = claims.filter(c => c.type === "vague" || c.type === "absolute").length;
-  const verifiableClaims = claims.filter(c => c.type === "verifiable").length;
+  const suspicious = words.filter((w) => w.suspicious).map((w) => w.word);
+  const credible = words.filter((w) => !w.suspicious).map((w) => w.word);
+  const vagueClaims = claims.filter((c) => c.type === "vague" || c.type === "absolute").length;
+  const verifiableClaims = claims.filter((c) => c.type === "verifiable").length;
+  const medicalClaims = claims.filter((c) => c.type === "medical_misinfo").length;
 
-  let explanation = `Credibility Score: ${confidence}/100 — Classification: ${prediction}. `;
+  let explanation = `Credibility Score: ${confidence}/100 — Classification: ${prediction}.\n\n`;
 
   if (prediction === "Likely Fake") {
-    explanation += "The text exhibits strong indicators of unreliable content. ";
+    explanation += "⚠️ HIGH RISK — This text exhibits strong indicators of unreliable content.\n\n";
+
+    if (medicalClaims > 0) {
+      explanation += `🏥 MEDICAL MISINFORMATION: Found ${medicalClaims} claim(s) that contradict established medical/scientific consensus. These claims are potentially dangerous if acted upon.\n\n`;
+    }
+    if (scores.conspiracyScore > 1) {
+      explanation += `🔍 CONSPIRACY LANGUAGE: Detected conspiracy theory patterns that rely on unfalsifiable claims and distrust of institutions rather than evidence.\n\n`;
+    }
     if (suspicious.length > 0) {
-      explanation += `Detected manipulative language: "${suspicious.slice(0, 3).join('", "')}". `;
+      explanation += `🚩 Flagged language: "${suspicious.slice(0, 4).join('", "')}"\n\n`;
     }
     if (vagueClaims > 0) {
-      explanation += `Found ${vagueClaims} claim(s) that are vague or use absolute language without evidence. `;
+      explanation += `Found ${vagueClaims} claim(s) that are vague or use absolute language without supporting evidence.\n\n`;
     }
-    explanation += "This content contradicts patterns seen in credible journalism. Verify all claims independently before sharing.";
+    explanation += "⛔ Do NOT share this content without thorough independent verification from multiple credible sources.";
   } else if (prediction === "Questionable") {
-    explanation += "The text shows mixed signals — some credible elements alongside concerning patterns. ";
+    explanation += "⚡ MIXED SIGNALS — This text contains both credible and concerning elements.\n\n";
+
     if (suspicious.length > 0) {
-      explanation += `Flagged language: "${suspicious.slice(0, 2).join('", "')}". `;
+      explanation += `🚩 Concerning: "${suspicious.slice(0, 3).join('", "')}"\n`;
     }
     if (credible.length > 0) {
-      explanation += `Positive indicators: "${credible.slice(0, 2).join('", "')}". `;
+      explanation += `✅ Positive: "${credible.slice(0, 3).join('", "')}"\n\n`;
     }
-    explanation += "Additional verification is strongly recommended before drawing conclusions.";
+    if (scores.emotionalScore > 0.5) {
+      explanation += "The emotional tone may be influencing perception of the facts. ";
+    }
+    if (scores.propagandaScore > 0.3) {
+      explanation += "Some politically loaded framing was detected. ";
+    }
+    explanation += "\n\nAdditional verification from independent sources is strongly recommended before drawing conclusions or sharing.";
   } else {
-    explanation += "The text follows patterns consistent with credible reporting. ";
+    explanation += "✅ This text follows patterns consistent with credible, professional reporting.\n\n";
+
     if (credible.length > 0) {
-      explanation += `Detected credibility signals: "${credible.slice(0, 3).join('", "')}". `;
+      explanation += `Credibility signals: "${credible.slice(0, 4).join('", "')}"\n`;
     }
     if (verifiableClaims > 0) {
-      explanation += `Found ${verifiableClaims} verifiable claim(s) with attributable sources or data. `;
+      explanation += `Found ${verifiableClaims} verifiable claim(s) with attributable sources, data, or named entities.\n\n`;
     }
-    explanation += "However, no model can guarantee truth — always cross-reference with multiple reliable sources.";
+    explanation += "ℹ️ No automated analysis can guarantee truth — always cross-reference important claims with multiple reliable sources.";
   }
 
   return explanation;

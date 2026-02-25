@@ -1,21 +1,7 @@
 import { CheckCircle, XCircle, AlertTriangle, TrendingUp, Info, ListChecks, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface Claim {
-  text: string;
-  type: "verifiable" | "vague" | "opinion" | "absolute";
-  credible: boolean;
-  reason: string;
-}
-
-interface AnalysisResult {
-  prediction: "Likely Reliable" | "Questionable" | "Likely Fake";
-  confidence: number;
-  importantWords: { word: string; weight: number; suspicious: boolean }[];
-  explanation: string;
-  claims: Claim[];
-  needsVerification: string[];
-}
+import type { Claim, AnalysisResult } from "@/lib/mockAnalysis";
 
 interface ResultCardProps {
   result: AnalysisResult;
@@ -48,11 +34,12 @@ const predictionConfig = {
   },
 };
 
-const claimTypeColors = {
+const claimTypeColors: Record<string, string> = {
   verifiable: "bg-success/20 text-success border-success/30",
   vague: "bg-yellow-500/20 text-yellow-500 border-yellow-500/30",
   opinion: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   absolute: "bg-destructive/20 text-destructive border-destructive/30",
+  medical_misinfo: "bg-red-600/20 text-red-400 border-red-600/30",
 };
 
 const ResultCard = ({ result }: ResultCardProps) => {
@@ -167,7 +154,9 @@ const ResultCard = ({ result }: ResultCardProps) => {
           <Info className="w-5 h-5 text-primary" />
           Analysis Reasoning
         </h3>
-        <p className="text-muted-foreground leading-relaxed">{result.explanation}</p>
+        <div className="text-muted-foreground leading-relaxed whitespace-pre-line text-sm">
+          {result.explanation}
+        </div>
       </div>
 
       {/* What Needs Verification */}
