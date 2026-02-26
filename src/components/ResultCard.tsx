@@ -1,7 +1,7 @@
 import { CheckCircle, XCircle, AlertTriangle, TrendingUp, Info, ListChecks, HelpCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-import type { Claim, AnalysisResult } from "@/lib/mockAnalysis";
+import type { Claim, AnalysisResult } from "@/lib/analysisApi";
 
 interface ResultCardProps {
   result: AnalysisResult;
