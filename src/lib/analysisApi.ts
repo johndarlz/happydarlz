@@ -9,7 +9,7 @@ export interface Claim {
 }
 
 export interface AnalysisResult {
-  prediction: "Likely Reliable" | "Questionable" | "Likely Fake";
+  prediction: "Real News" | "Fake News";
   confidence: number;
   importantWords: { word: string; weight: number; suspicious: boolean }[];
   explanation: string;
