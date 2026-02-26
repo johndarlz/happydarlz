@@ -3,11 +3,13 @@ import Header from "@/components/Header";
 import HeroSection from "@/components/HeroSection";
 import NewsInput from "@/components/NewsInput";
 import ResultCard from "@/components/ResultCard";
-import { analyzeNews } from "@/lib/mockAnalysis";
+import { analyzeNews } from "@/lib/analysisApi";
+import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const { toast } = useToast();
 
   const handleAnalyze = async (text: string) => {
     setIsLoading(true);
@@ -16,8 +18,13 @@ const Index = () => {
     try {
       const analysisResult = await analyzeNews(text);
       setResult(analysisResult);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Analysis failed:", error);
+      toast({
+        title: "Analysis Failed",
+        description: error?.message || "Something went wrong. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
