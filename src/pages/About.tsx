@@ -117,8 +117,8 @@ Claim-Level Extraction
   - Verifiable vs Vague vs Opinion vs Absolute
       ↓
 Output:
-  - Credibility Score (0–100)
-  - Classification: Reliable / Questionable / Likely Fake
+  - Confidence Score (50–100%)
+  - Classification: Real News / Fake News
   - Justification with specific reasons
   - What additional verification is needed`}
                 </pre>
@@ -180,7 +180,7 @@ Output:
               <div className="bg-destructive/10 border border-destructive/30 rounded-lg p-4">
                 <p className="text-sm font-medium mb-2">Output:</p>
                 <p className="text-sm text-muted-foreground">Credibility score: <strong className="text-destructive">8/100</strong></p>
-                <p className="text-sm text-muted-foreground">Classification: <strong className="text-destructive">Likely Fake</strong></p>
+                <p className="text-sm text-muted-foreground">Classification: <strong className="text-destructive">Fake News</strong></p>
                 <p className="text-sm text-muted-foreground mt-2">Reason: Extraordinary medical claim without evidence, contradicts established oncology research, no credible sources or trials cited.</p>
               </div>
             </CardContent>

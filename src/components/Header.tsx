@@ -1,4 +1,4 @@
-import { Github, FileText } from "lucide-react";
+import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "./ui/button";
 import logo from "@/assets/logo.png";
@@ -37,15 +37,6 @@ const Header = () => {
             >
               Model Stats
             </Link>
-            <a 
-              href="https://github.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
-            >
-              <Github className="h-4 w-4" />
-              GitHub
-            </a>
           </nav>
 
           <div className="flex items-center gap-3">

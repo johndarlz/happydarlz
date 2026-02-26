@@ -41,8 +41,8 @@ Steps:
 4. Evaluate language for emotional manipulation or clickbait.
 5. Assess consistency with well-established facts.
 6. Output:
-   - Credibility score (0–100)
-   - Classification: Reliable / Questionable / Likely Fake
+   - Confidence score (50–100%)
+   - Classification: Real News / Fake News
    - Short justification with specific reasons
    - What additional verification is needed`}
               </pre>
@@ -268,7 +268,7 @@ git push heroku main`}
                   <ul className="space-y-2 text-sm">
                     <li className="flex items-center gap-2 text-muted-foreground">
                       <CheckCircle2 className="w-4 h-4 text-success" />
-                      Returns 3-tier classification
+                      Returns binary classification (Real/Fake)
                     </li>
                     <li className="flex items-center gap-2 text-muted-foreground">
                       <CheckCircle2 className="w-4 h-4 text-success" />

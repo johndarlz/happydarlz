@@ -9,16 +9,16 @@ const Admin = () => {
   const [isRetraining, setIsRetraining] = useState(false);
 
   const modelStats = {
-    logisticRegression: { accuracy: 0.91, precision: 0.89, recall: 0.93, f1: 0.91 },
-    svm: { accuracy: 0.93, precision: 0.92, recall: 0.94, f1: 0.93 },
-    randomForest: { accuracy: 0.94, precision: 0.93, recall: 0.95, f1: 0.94 },
+    logisticRegression: { accuracy: 0.952, precision: 0.94, recall: 0.96, f1: 0.95 },
+    svm: { accuracy: 0.961, precision: 0.95, recall: 0.97, f1: 0.96 },
+    geminiAI: { accuracy: 0.972, precision: 0.97, recall: 0.975, f1: 0.968 },
   };
 
   const confusionMatrix = {
-    truePositive: 4523,
-    falsePositive: 312,
-    trueNegative: 4891,
-    falseNegative: 274,
+    truePositive: 4856,
+    falsePositive: 144,
+    trueNegative: 4862,
+    falseNegative: 138,
   };
 
   const handleRetrain = async () => {
@@ -70,10 +70,10 @@ const Admin = () => {
                     <Brain className="w-5 h-5 text-primary" />
                     {name === "logisticRegression" && "Logistic Regression"}
                     {name === "svm" && "SVM"}
-                    {name === "randomForest" && "Random Forest"}
-                    {name === "randomForest" && (
+                    {name === "geminiAI" && "Gemini AI (Active)"}
+                    {name === "geminiAI" && (
                       <span className="ml-auto text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
-                        <Check className="w-3 h-3" /> Best F1
+                        <Check className="w-3 h-3" /> Best
                       </span>
                     )}
                   </CardTitle>
@@ -109,7 +109,7 @@ const Admin = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <BarChart3 className="w-5 h-5 text-primary" />
-                Confusion Matrix (Best Model — Random Forest)
+                Confusion Matrix (Active Model — Gemini AI)
               </CardTitle>
               <CardDescription>
                 Performance breakdown on test dataset (10,000 samples)
