@@ -5,6 +5,11 @@ import NewsInput from "@/components/NewsInput";
 import ResultCard from "@/components/ResultCard";
 import StatsSection from "@/components/StatsSection";
 import AnalysisPipeline from "@/components/AnalysisPipeline";
+import ThreatLandscape from "@/components/ThreatLandscape";
+import HowItWorks from "@/components/HowItWorks";
+import TechStack from "@/components/TechStack";
+import UseCases from "@/components/UseCases";
+import FAQ from "@/components/FAQ";
 import { analyzeNews } from "@/lib/analysisApi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -33,9 +38,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background relative">
-      {/* Grid overlay */}
       <div className="fixed inset-0 grid-overlay opacity-20 pointer-events-none" />
-      
+
       <Header />
 
       <main className="pt-16 relative z-10">
@@ -58,15 +62,20 @@ const Index = () => {
         )}
 
         <StatsSection />
+        <ThreatLandscape />
+        <HowItWorks />
+        <TechStack />
+        <UseCases />
+        <FAQ />
       </main>
 
-      <footer className="border-t border-border/30 py-8 mt-auto relative z-10">
+      <footer className="border-t border-border/30 py-10 mt-auto relative z-10">
         <div className="container mx-auto px-4 text-center">
-          <p className="text-sm text-muted-foreground font-display tracking-wider">
-            VerityAI — Credibility Analysis Engine
+          <p className="font-display text-sm tracking-wider text-foreground/80 mb-2">
+            VerityAI
           </p>
-          <p className="text-xs text-muted-foreground/50 mt-2 font-body">
-            This tool provides predictions with confidence &amp; reasoning, not final truth. Always verify from multiple sources.
+          <p className="text-xs text-muted-foreground/50 font-body">
+            Credibility Analysis Engine · Powered by Deep Learning · © {new Date().getFullYear()}
           </p>
         </div>
       </footer>
