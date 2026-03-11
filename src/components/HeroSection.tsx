@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Zap } from "lucide-react";
 import ParticleNetwork from "./ParticleNetwork";
 import TypewriterText from "./TypewriterText";
+import heroBrain from "@/assets/hero-brain.png";
 
 const HeroSection = () => {
   return (
@@ -9,8 +10,17 @@ const HeroSection = () => {
       <div className="absolute inset-0 gradient-hero" />
       <ParticleNetwork />
 
+      {/* Neural brain image */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 0.3, scale: 1 }}
+        transition={{ duration: 2, ease: "easeOut" }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] md:w-[550px] md:h-[550px] pointer-events-none"
+      >
+        <img src={heroBrain} alt="Neural AI Brain" className="w-full h-full object-contain animate-float opacity-60" style={{ filter: "drop-shadow(0 0 40px hsl(185 100% 50% / 0.3))" }} />
+      </motion.div>
+
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-[120px] animate-pulse-glow pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[40%] w-[300px] h-[300px] rounded-full bg-primary/8 blur-[80px] pointer-events-none" style={{ animation: "float 8s ease-in-out infinite" }} />
 
       <div className="relative z-10 container mx-auto px-4 text-center">
         <motion.div
