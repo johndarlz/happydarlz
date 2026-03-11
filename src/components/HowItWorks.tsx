@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Search, Brain, ScanLine, BarChart3, CheckCircle, ShieldCheck } from "lucide-react";
+import pipelineFlow from "@/assets/pipeline-flow.png";
 
 const steps = [
   {
@@ -44,6 +45,12 @@ const HowItWorks = () => {
   return (
     <section className="py-24 px-4 relative overflow-hidden">
       <div className="absolute inset-0 grid-overlay opacity-10" />
+      
+      {/* Background image */}
+      <div className="absolute inset-0 opacity-[0.07]">
+        <img src={pipelineFlow} alt="" className="w-full h-full object-cover" />
+      </div>
+
       <div className="container mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -64,7 +71,6 @@ const HowItWorks = () => {
         </motion.div>
 
         <div className="max-w-4xl mx-auto relative">
-          {/* Vertical line connector */}
           <div className="absolute left-6 md:left-1/2 top-0 bottom-0 w-[1px] bg-gradient-to-b from-primary/50 via-primary/20 to-transparent hidden md:block" />
 
           <div className="space-y-8">
@@ -81,10 +87,10 @@ const HowItWorks = () => {
                   className={`flex items-start gap-6 ${isLeft ? "md:flex-row" : "md:flex-row-reverse"} flex-col md:text-left`}
                 >
                   <div className={`flex-1 ${!isLeft ? "md:text-right" : ""}`}>
-                    <div className={`glass rounded-2xl p-6 group hover:border-primary/30 transition-all duration-500 relative overflow-hidden`}>
+                    <div className="glass rounded-2xl p-6 group hover:border-primary/30 transition-all duration-500 relative overflow-hidden hover:scale-[1.02]">
                       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                       <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 rounded-lg bg-primary/10">
+                        <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
                           <Icon className="w-5 h-5 text-primary" />
                         </div>
                         <span className="font-display text-xs text-primary/60 uppercase tracking-wider">Step {index + 1}</span>
@@ -95,9 +101,7 @@ const HowItWorks = () => {
                     </div>
                   </div>
 
-                  {/* Center dot */}
                   <div className="hidden md:flex items-center justify-center w-4 h-4 rounded-full bg-primary/30 border-2 border-primary shrink-0 mt-8 relative z-10 glow-cyan" />
-
                   <div className="flex-1 hidden md:block" />
                 </motion.div>
               );

@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { Shield, Eye, Brain, BarChart3, AlertTriangle, Globe, Fingerprint, Layers } from "lucide-react";
+import { Shield, AlertTriangle, Globe, Fingerprint, Layers } from "lucide-react";
+import threatRadar from "@/assets/threat-radar.png";
 
 const threats = [
   {
@@ -55,35 +56,84 @@ const ThreatLandscape = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
-          {threats.map((threat, index) => {
-            const Icon = threat.icon;
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30, x: index % 2 === 0 ? -20 : 20 }}
-                whileInView={{ opacity: 1, y: 0, x: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.15, duration: 0.6 }}
-                className="glass rounded-2xl p-6 group hover:border-destructive/30 transition-all duration-500 relative overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-destructive/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-destructive/10 shrink-0">
-                    <Icon className="w-6 h-6 text-destructive" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-display text-sm font-semibold mb-2 uppercase tracking-wider">{threat.title}</h3>
-                    <p className="text-sm text-muted-foreground font-body leading-relaxed mb-3">{threat.description}</p>
-                    <div className="flex items-baseline gap-2">
-                      <span className="font-display text-2xl font-bold text-destructive">{threat.stat}</span>
-                      <span className="text-xs text-muted-foreground/70 font-body">{threat.statLabel}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto items-center">
+          {/* Left cards */}
+          <div className="space-y-6">
+            {threats.slice(0, 2).map((threat, index) => {
+              const Icon = threat.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: -40 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.15, duration: 0.6 }}
+                  className="glass rounded-2xl p-6 group hover:border-destructive/30 transition-all duration-500 relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-destructive/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-destructive/10 shrink-0">
+                      <Icon className="w-6 h-6 text-destructive" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-display text-xs font-semibold mb-2 uppercase tracking-wider">{threat.title}</h3>
+                      <p className="text-xs text-muted-foreground font-body leading-relaxed mb-3">{threat.description}</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-display text-2xl font-bold text-destructive">{threat.stat}</span>
+                        <span className="text-[10px] text-muted-foreground/70 font-body">{threat.statLabel}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* Center image */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="hidden lg:flex items-center justify-center"
+          >
+            <div className="relative">
+              <img src={threatRadar} alt="Threat Radar" className="w-full max-w-[350px] rounded-2xl opacity-90" style={{ filter: "drop-shadow(0 0 30px hsl(345 100% 60% / 0.3))" }} />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+            </div>
+          </motion.div>
+
+          {/* Right cards */}
+          <div className="space-y-6">
+            {threats.slice(2, 4).map((threat, index) => {
+              const Icon = threat.icon;
+              return (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, x: 40 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.15, duration: 0.6 }}
+                  className="glass rounded-2xl p-6 group hover:border-destructive/30 transition-all duration-500 relative overflow-hidden"
+                >
+                  <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-destructive/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-destructive/10 shrink-0">
+                      <Icon className="w-6 h-6 text-destructive" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-display text-xs font-semibold mb-2 uppercase tracking-wider">{threat.title}</h3>
+                      <p className="text-xs text-muted-foreground font-body leading-relaxed mb-3">{threat.description}</p>
+                      <div className="flex items-baseline gap-2">
+                        <span className="font-display text-2xl font-bold text-destructive">{threat.stat}</span>
+                        <span className="text-[10px] text-muted-foreground/70 font-body">{threat.statLabel}</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

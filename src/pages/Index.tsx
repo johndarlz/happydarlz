@@ -10,6 +10,7 @@ import HowItWorks from "@/components/HowItWorks";
 import TechStack from "@/components/TechStack";
 import UseCases from "@/components/UseCases";
 import FAQ from "@/components/FAQ";
+import ChatBot from "@/components/ChatBot";
 import { analyzeNews } from "@/lib/analysisApi";
 import { useToast } from "@/hooks/use-toast";
 
@@ -79,6 +80,8 @@ const Index = () => {
           </p>
         </div>
       </footer>
+
+      <ChatBot />
     </div>
   );
 };
