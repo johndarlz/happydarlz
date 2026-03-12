@@ -453,29 +453,6 @@ The following environment variables are auto-configured by Lovable Cloud:
 | `LOVABLE_API_KEY` | AI Gateway authentication (server-side only) |
 
 ---
-
-## 🌐 Deployment
-
-### Frontend (Netlify)
-
-The project includes `netlify.toml` with SPA routing configuration:
-
-```toml
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-```
-
-### Backend (Lovable Cloud)
-
-Edge Functions are automatically deployed when changes are pushed. No manual deployment steps required.
-
-### Live URLs
-
-- **Preview**: https://id-preview--91851caa-0f0c-4f4e-827b-60559a8e8340.lovable.app
-- **Published**: https://happydarlz.lovable.app
-
 ---
 
 ## 📄 License
